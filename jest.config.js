@@ -15,8 +15,8 @@ module.exports = {
   ],
   verbose: true,
   moduleNameMapper: {
-    "@effect-ts/express/(.*)$": "<rootDir>/packages/express/build/$1",
-    "@effect-ts/express$": "<rootDir>/packages/express/build"
+    "@tcmlabs/effect-ts-fastify/(.*)$": "<rootDir>/packages/fastify/build/$1",
+    "@tcmlabs/effect-ts-fastify$": "<rootDir>/packages/fastify/build"
   },
   globals: {
     "ts-jest": {
