@@ -8,8 +8,8 @@
       {
         "transform": "@effect-ts/tracing-plugin",
         "moduleMap": {
-          "^packages/express/src/(.*)": "(@effect-ts/express): src/$1",
-          "^packages/express/test/(.*)": "(@effect-ts/express/test): test/$1"
+          "^packages/fastify/src/(.*)": "(@tcmlabs/effect-ts-fastify): src/$1",
+          "^packages/fastify/test/(.*)": "(@tcmlabs/effect-ts-fastify): test/$1"
         }
       }
     ]
