@@ -4,7 +4,7 @@ import * as L from "@effect-ts/core/Effect/Layer"
 import { tag } from "@effect-ts/core/Has"
 import type { FastifyReply, FastifyRequest } from "fastify"
 
-import { get, inject, LiveFastifyApp } from "../src"
+import * as Fastify from "../src"
 
 describe("fastify", () => {
   test("Should handle GET request", async () => {
@@ -31,10 +31,10 @@ describe("fastify", () => {
 
     const response = await pipe(
       T.gen(function* (_) {
-        yield* _(get("/", handler))
-        return yield* _(inject({ method: "GET", url: "/" }))
+        yield* _(Fastify.get("/", handler))
+        return yield* _(Fastify.inject({ method: "GET", url: "/" }))
       }),
-      T.provideSomeLayer(LiveFastifyApp),
+      T.provideSomeLayer(Fastify.LiveFastify),
       T.provideSomeLayer(LiveMessageService),
       T.runPromise
     )

@@ -12,7 +12,7 @@ const handler = (_request: FastifyRequest, reply: FastifyReply) =>
 
 const program = T.gen(function* (_) {
   yield* _(Fastify.get("/", handler))
-  yield* _(Fastify.listen())
+  yield* _(Fastify.listen(3000, "localhost"))
 })
 
-pipe(program, T.provideSomeLayer(Fastify.LiveFastifyApp), T.runPromiseExit)
+pipe(program, T.provideSomeLayer(Fastify.LiveFastify), T.runPromiseExit)

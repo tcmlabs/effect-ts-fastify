@@ -1,7 +1,9 @@
 // tracing: off
+import { pipe } from "@effect-ts/core"
 import * as T from "@effect-ts/core/Effect"
 import * as L from "@effect-ts/core/Effect/Layer"
 import type { Has } from "@effect-ts/core/Has"
+import { Tagged } from "@effect-ts/system/Case"
 import { tag } from "@effect-ts/core/Has"
 import type { _A, _R } from "@effect-ts/core/Utils"
 import type {
@@ -22,72 +24,60 @@ import type {
 import fastify from "fastify"
 import type { RouteGenericInterface } from "fastify/types/route"
 
-const FastifyAppSymbol = Symbol.for("@tcmlabs/effect-ts-fastify")
-export const FastifyApp = tag<FastifyApp>(FastifyAppSymbol)
+export class FastifyListenError extends Tagged("FastifyListenError")<Error | null> {}
+export class FastifyInjectError extends Tagged("FastofyInjectError")<Error | null> {}
 
-const makeFastifyApp = T.gen(function* (_) {
-  const app = yield* _(T.succeedWith(() => fastify()))
-
-  const listen = () =>
-    T.effectAsync<unknown, Error, void>((resume) => {
-      app.listen(3000, "localhost", (error, address) => {
-        if (error) {
-          resume(T.fail(new Error("TODO")))
-        } else {
-          console.log("fastify listening at", address, "!")
-          resume(T.unit)
-        }
-      })
-    })
-
-  const inject = (opts: InjectOptions | string) =>
-    T.effectAsync<unknown, Error, LightMyRequestResponse>((resume) => {
-      app.inject(opts, function (error: Error, response: LightMyRequestResponse) {
-        if (error) {
-          resume(T.fail(new Error("TODO")))
-        } else {
-          resume(T.succeed(response))
-        }
-      })
-    })
-
-  const runtime = <
-    RouteHandler extends EffectHandler<any, any, any, any, any, any, any>
-  >(
-    handler: RouteHandler
-  ) => {
-    return T.map_(
-      T.runtime<
-        _R<
-          RouteHandler extends EffectHandler<infer R, any, any, any, any, any, any>
-            ? T.RIO<R, void>
-            : never
-        >
-      >(),
-      (r) => {
-        return (request: FastifyRequest, reply: FastifyReply) => {
-          r.runFiber(handler.call(app, request, reply))
-        }
-      }
-    )
-  }
-
-  return {
-    _tag: FastifyAppSymbol,
-    app,
-    inject,
-    listen,
-    runtime
-  }
+const FastifySymbol = Symbol.for("@tcmlabs/effect-ts-fastify")
+export const makeLiveFastify = T.succeed({
+  _tag: FastifySymbol,
+  instance: fastify()
 })
 
-function withFastifyRuntime<
-  Handler extends EffectHandler<any, any, any, any, any, any, any>
->(handler: Handler) {
-  return T.accessServiceM(FastifyApp)((_) => _.runtime(handler))
-}
+export const Fastify = tag<Fastify>(FastifySymbol)
+export interface Fastify extends _A<typeof makeLiveFastify> {}
+export const LiveFastify = L.fromEffect(Fastify)(makeLiveFastify)
 
-const withFastifyInstance = T.accessService(FastifyApp)((_) => _.app)
+export const accessIntance = T.accessService(Fastify)((_) => _.instance)
+
+export function inject(opts: InjectOptions | string) {
+  return pipe(
+    accessIntance,
+    T.chain((instance) =>
+      T.effectAsync<unknown, Error, LightMyRequestResponse>((resume) => {
+        instance.inject(
+          opts,
+          function (error: Error, response: LightMyRequestResponse) {
+            if (error) {
+              resume(T.fail(new FastifyInjectError(error)))
+            } else {
+              resume(T.succeed(response))
+            }
+          }
+        )
+      })
+    )
+  )
+}
+export function listen(
+  port: number | string,
+  address: string
+): T.Effect<Has<Fastify>, Error, void> {
+  return pipe(
+    accessIntance,
+    T.chain((instance) =>
+      T.effectAsync<unknown, Error, void>((resume) => {
+        instance.listen(port, address, (error, address) => {
+          if (error) {
+            resume(T.fail(new FastifyListenError(error)))
+          } else {
+            console.log("fastify listening at", address, "!")
+            resume(T.unit)
+          }
+        })
+      })
+    )
+  )
+}
 
 export type EffectHandler<
   R,
@@ -102,6 +92,30 @@ export type EffectHandler<
   request: FastifyRequest<RouteGeneric, RawServer, RawRequest, ContextConfig, Logger>,
   reply: FastifyReply<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig>
 ) => T.Effect<R, never, void | Promise<RouteGeneric["Reply"] | void>>
+
+function runHandler<Handler extends EffectHandler<any, any, any, any, any, any, any>>(
+  handler: Handler
+) {
+  return pipe(
+    T.service(Fastify),
+    T.chain(({ instance }) =>
+      T.map_(
+        T.runtime<
+          _R<
+            Handler extends EffectHandler<infer R, any, any, any, any, any, any>
+              ? T.RIO<R, void>
+              : never
+          >
+        >(),
+        (r) => {
+          return (request: FastifyRequest, reply: FastifyReply) => {
+            r.runFiber(handler.call(instance, request, reply))
+          }
+        }
+      )
+    )
+  )
+}
 
 function routeOptions<RouteHandler>(
   opts: RouteShorthandOptions | RouteHandler,
@@ -120,7 +134,7 @@ const match =
     opts: RouteShorthandOptions | RouteHandler,
     handler?: RouteHandler
   ): T.RIO<
-    Has<FastifyApp> &
+    Has<Fastify> &
       _R<
         RouteHandler extends EffectHandler<infer R, any, any, any, any, any, any>
           ? T.RIO<R, void>
@@ -129,27 +143,18 @@ const match =
     void
   > => {
     const [_handler, _opts] = routeOptions<RouteHandler>(opts, handler)
-    return withFastifyRuntime(_handler)["|>"](
+    return runHandler(_handler)["|>"](
       T.chain((handler) =>
-        withFastifyInstance["|>"](
-          T.chain((app) =>
+        accessIntance["|>"](
+          T.chain((instance) =>
             T.succeedWith(() => {
-              app.route({ ..._opts, ...{ method, url, handler } })
+              instance.route({ ..._opts, ...{ method, url, handler } })
             })
           )
         )
       )
     )
   }
-
-export interface FastifyApp extends _A<typeof makeFastifyApp> {}
-export const LiveFastifyApp = L.fromEffect(FastifyApp)(makeFastifyApp)
-
-export const { inject, listen } = T.deriveLifted(FastifyApp)(
-  ["listen", "inject"],
-  [],
-  []
-)
 
 export const get = match("GET")
 export const post = match("POST")
