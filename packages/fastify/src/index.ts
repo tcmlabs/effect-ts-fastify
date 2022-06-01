@@ -24,8 +24,12 @@ import type {
 import fastify from "fastify"
 import type { RouteGenericInterface } from "fastify/types/route"
 
-export class FastifyListenError extends Tagged("FastifyListenError")<Error | null> {}
-export class FastifyInjectError extends Tagged("FastofyInjectError")<Error | null> {}
+export class FastifyListenError extends Tagged("FastifyListenError")<{
+  readonly error: Error | null
+}> {}
+export class FastifyInjectError extends Tagged("FastofyInjectError")<{
+  readonly error: Error | null
+}> {}
 
 const FastifySymbol = Symbol.for("@tcmlabs/effect-ts-fastify")
 export const makeLiveFastify = T.succeed({
@@ -43,12 +47,12 @@ export function inject(opts: InjectOptions | string) {
   return pipe(
     accessIntance,
     T.chain((instance) =>
-      T.effectAsync<unknown, Error, LightMyRequestResponse>((resume) => {
+      T.effectAsync<unknown, FastifyInjectError, LightMyRequestResponse>((resume) => {
         instance.inject(
           opts,
           function (error: Error, response: LightMyRequestResponse) {
             if (error) {
-              resume(T.fail(new FastifyInjectError(error)))
+              resume(T.fail(new FastifyInjectError({ error })))
             } else {
               resume(T.succeed(response))
             }
@@ -61,21 +65,23 @@ export function inject(opts: InjectOptions | string) {
 export function listen(
   port: number | string,
   address: string
-): T.Effect<Has<Fastify>, Error, void> {
+): T.Effect<Has<Fastify>, FastifyListenError, void> {
   return pipe(
     accessIntance,
     T.chain((instance) =>
-      T.effectAsync<unknown, Error, void>((resume) => {
+      T.effectAsync<unknown, FastifyListenError, void>((resume) => {
         instance.listen(port, address, (error, address) => {
           if (error) {
-            resume(T.fail(new FastifyListenError(error)))
+            resume(T.fail(new FastifyListenError({ error })))
           } else {
             console.log("fastify listening at", address, "!")
             resume(T.unit)
           }
         })
       })
-    )
+    ),
+    // TODO
+    T.chain(() => T.never)
   )
 }
 

@@ -1,5 +1,6 @@
 import { pipe } from "@effect-ts/core"
 import * as T from "@effect-ts/core/Effect"
+import * as N from "@effect-ts/node/Runtime"
 import type { FastifyReply, FastifyRequest } from "fastify"
 
 import * as Fastify from "../src"
@@ -15,4 +16,4 @@ const program = T.gen(function* (_) {
   yield* _(Fastify.listen(3000, "localhost"))
 })
 
-pipe(program, T.provideSomeLayer(Fastify.LiveFastify), T.runPromiseExit)
+pipe(program, T.provideSomeLayer(Fastify.LiveFastify), N.runMain)
