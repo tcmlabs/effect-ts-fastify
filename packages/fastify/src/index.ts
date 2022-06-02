@@ -3,9 +3,9 @@ import { pipe } from "@effect-ts/core"
 import * as T from "@effect-ts/core/Effect"
 import * as L from "@effect-ts/core/Effect/Layer"
 import type { Has } from "@effect-ts/core/Has"
-import { Tagged } from "@effect-ts/system/Case"
 import { tag } from "@effect-ts/core/Has"
 import type { _A, _R } from "@effect-ts/core/Utils"
+import { Tagged } from "@effect-ts/system/Case"
 import type {
   ContextConfigDefault,
   FastifyInstance,
@@ -32,16 +32,48 @@ export class FastifyInjectError extends Tagged("FastofyInjectError")<{
 }> {}
 
 const FastifySymbol = Symbol.for("@tcmlabs/effect-ts-fastify")
-export const makeLiveFastify = T.succeed({
+
+export const makeLiveFastify = T.succeedWith(() => ({
   _tag: FastifySymbol,
   instance: fastify()
-})
+}))
 
 export const Fastify = tag<Fastify>(FastifySymbol)
 export interface Fastify extends _A<typeof makeLiveFastify> {}
 export const LiveFastify = L.fromEffect(Fastify)(makeLiveFastify)
 
 export const accessIntance = T.accessService(Fastify)((_) => _.instance)
+
+export function listen(
+  port: number | string,
+  address: string
+): T.Effect<Has<Fastify>, FastifyListenError, void> {
+  return pipe(
+    accessIntance,
+    T.chain((instance) =>
+      T.effectAsync<unknown, FastifyListenError, void>((resume) => {
+        instance.listen(port, address, (error) => {
+          if (error) {
+            resume(T.fail(new FastifyListenError({ error })))
+          } else {
+            resume(T.unit)
+          }
+        })
+      })
+    )
+  )
+}
+
+export function close(): T.Effect<Has<Fastify>, never, void> {
+  return pipe(
+    accessIntance,
+    T.chain((instance) =>
+      T.effectAsync<Has<Fastify>, never, void>((resume) => {
+        instance.close(() => resume(T.unit))
+      })
+    )
+  )
+}
 
 export function inject(opts: InjectOptions | string) {
   return pipe(
@@ -60,28 +92,6 @@ export function inject(opts: InjectOptions | string) {
         )
       })
     )
-  )
-}
-export function listen(
-  port: number | string,
-  address: string
-): T.Effect<Has<Fastify>, FastifyListenError, void> {
-  return pipe(
-    accessIntance,
-    T.chain((instance) =>
-      T.effectAsync<unknown, FastifyListenError, void>((resume) => {
-        instance.listen(port, address, (error, address) => {
-          if (error) {
-            resume(T.fail(new FastifyListenError({ error })))
-          } else {
-            console.log("fastify listening at", address, "!")
-            resume(T.unit)
-          }
-        })
-      })
-    ),
-    // TODO
-    T.chain(() => T.never)
   )
 }
 
@@ -123,16 +133,6 @@ function runHandler<Handler extends EffectHandler<any, any, any, any, any, any, 
   )
 }
 
-function routeOptions<RouteHandler>(
-  opts: RouteShorthandOptions | RouteHandler,
-  handler?: RouteHandler
-): [handler: any, opts: any] {
-  if (handler) {
-    return [handler as any, opts as any]
-  }
-  return [opts as any, {} as any]
-}
-
 const match =
   (method: HTTPMethods) =>
   <RouteHandler extends EffectHandler<any, any, any, any, any, any, any>>(
@@ -148,15 +148,13 @@ const match =
       >,
     void
   > => {
-    const [_handler, _opts] = routeOptions<RouteHandler>(opts, handler)
+    const _handler = (handler ? handler : opts) as any
+    const _opts = (handler ? {} : handler) as any
+
     return runHandler(_handler)["|>"](
       T.chain((handler) =>
         accessIntance["|>"](
-          T.chain((instance) =>
-            T.succeedWith(() => {
-              instance.route({ ..._opts, ...{ method, url, handler } })
-            })
-          )
+          T.map((instance) => instance.route({ ..._opts, ...{ method, url, handler } }))
         )
       )
     )
