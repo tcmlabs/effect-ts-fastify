@@ -386,6 +386,11 @@
   dependencies:
     "@effect-ts/system" "^0.45.2"
 
+"@effect-ts/node@^0.39.0":
+  version "0.39.0"
+  resolved "https://registry.yarnpkg.com/@effect-ts/node/-/node-0.39.0.tgz#73052397efdc30f8a08412776d8c028d3ff33ba5"
+  integrity sha512-YYBfWMrx6KW0UQ1H+NKYP8LhvD8YcCS9Gpfyv0KR5p5N843bfcJkuKqw44fRrDy6/khY3G2T202x6ibL3uXRoA==
+
 "@effect-ts/system@^0.45.2":
   version "0.45.2"
   resolved "https://registry.yarnpkg.com/@effect-ts/system/-/system-0.45.2.tgz#06155a8e6dc16949e61cac32ab06ce919891ddda"
