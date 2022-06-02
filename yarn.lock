@@ -369,10 +369,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@effect-ts/build-utils@^0.27.0":
-  version "0.27.0"
-  resolved "https://registry.yarnpkg.com/@effect-ts/build-utils/-/build-utils-0.27.0.tgz#b328b32999de24fe5d0520792bc59647b62e3504"
-  integrity sha512-sTztI8frsPuvMviH3+yEHbJTDved8GZNoOA7kuvFpnpNZ5NDHcMFWf7EZId9i5SJCUqlW+4vI8wj+YWua7WgRw==
+"@effect-ts/build-utils@^0.38.3":
+  version "0.38.3"
+  resolved "https://registry.yarnpkg.com/@effect-ts/build-utils/-/build-utils-0.38.3.tgz#d67862903f8a09fb3f3c65eb5437ac2d6c95c509"
+  integrity sha512-gyh2wB0tcHrjrqmYY9BCH9mS7F2gJa60t54AvWea3Dm3rEeBBp1UW89JzY0FtAgnL0FkDpiXuFOpPqzoKw4zgw==
 
 "@effect-ts/core@^0.48.0":
   version "0.48.2"
