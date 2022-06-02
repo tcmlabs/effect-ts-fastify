@@ -118,7 +118,7 @@ function runHandler<Handler extends EffectHandler<any, any, any, any, any, any, 
       T.map_(
         T.runtime<
           _R<
-            Handler extends EffectHandler<infer R, any, any, any, any, any, any>
+            [Handler] extends [EffectHandler<infer R, any, any, any, any, any, any>]
               ? T.RIO<R, void>
               : never
           >
@@ -135,14 +135,14 @@ function runHandler<Handler extends EffectHandler<any, any, any, any, any, any, 
 
 const match =
   (method: HTTPMethods) =>
-  <RouteHandler extends EffectHandler<any, any, any, any, any, any, any>>(
+  <Handler extends EffectHandler<any, any, any, any, any, any, any>>(
     url: string,
-    opts: RouteShorthandOptions | RouteHandler,
-    handler?: RouteHandler
+    opts: RouteShorthandOptions | Handler,
+    handler?: Handler
   ): T.RIO<
     Has<Fastify> &
       _R<
-        RouteHandler extends EffectHandler<infer R, any, any, any, any, any, any>
+        [Handler] extends [EffectHandler<infer R, any, any, any, any, any, any>]
           ? T.RIO<R, void>
           : never
       >,
