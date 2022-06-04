@@ -10,6 +10,7 @@ import type {
   ContextConfigDefault,
   FastifyInstance,
   FastifyLoggerInstance,
+  FastifyPluginOptions,
   FastifyReply,
   FastifyRequest,
   HTTPMethods,
@@ -27,7 +28,12 @@ import type { RouteGenericInterface } from "fastify/types/route"
 export class FastifyListenError extends Tagged("FastifyListenError")<{
   readonly error: Error | null
 }> {}
+
 export class FastifyInjectError extends Tagged("FastofyInjectError")<{
+  readonly error: Error | null
+}> {}
+
+export class FastifyPluginError extends Tagged("FastifyPluginError")<{
   readonly error: Error | null
 }> {}
 
@@ -104,7 +110,6 @@ export type EffectHandler<
   ContextConfig = ContextConfigDefault,
   Logger extends FastifyLoggerInstance = FastifyLoggerInstance
 > = (
-  this: FastifyInstance<RawServer, RawRequest, RawReply, Logger>,
   request: FastifyRequest<RouteGeneric, RawServer, RawRequest, ContextConfig, Logger>,
   reply: FastifyReply<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig>
 ) => T.Effect<R, never, void | Promise<RouteGeneric["Reply"] | void>>
@@ -113,8 +118,8 @@ function runHandler<Handler extends EffectHandler<any, any, any, any, any, any, 
   handler: Handler
 ) {
   return pipe(
-    T.service(Fastify),
-    T.chain(({ instance }) =>
+    accessInstance,
+    T.chain((instance) =>
       T.map_(
         T.runtime<
           _R<
@@ -168,3 +173,66 @@ export const put = match("PUT")
 export const patch = match("PATCH")
 export const options = match("OPTIONS")
 export const head = match("HEAD")
+
+export type EffectPlugin<
+  R,
+  Options extends FastifyPluginOptions = Record<never, never>,
+  Server extends RawServerBase = RawServerDefault
+> = (
+  instance: FastifyInstance<
+    Server,
+    RawRequestDefaultExpression<Server>,
+    RawReplyDefaultExpression<Server>
+  >,
+  opts: Options
+) => T.Effect<Has<Fastify> & R, FastifyPluginError, void>
+
+export function runPlugin<P extends EffectPlugin<any, any, any>>(plugin: P) {
+  return pipe(
+    T.map_(
+      T.runtime<
+        _R<[P] extends [EffectPlugin<infer R, any, any>] ? T.RIO<R, void> : never>
+      >(),
+      (r) => {
+        return (
+          instance: [P] extends [EffectPlugin<any, any, infer S>]
+            ? FastifyInstance<
+                S,
+                RawRequestDefaultExpression<S>,
+                RawReplyDefaultExpression<S>
+              >
+            : never,
+          options: [P] extends [EffectPlugin<any, infer O, any>] ? O : never,
+          done: (err?: Error) => void
+        ) => {
+          r.runPromise(plugin(instance, options))
+            .then(() => done())
+            .catch(done)
+        }
+      }
+    )
+  )
+}
+
+export const register = <R, Options extends FastifyPluginOptions>(
+  plugin: EffectPlugin<R, Options>,
+  opts?: Options
+) =>
+  T.gen(function* (_) {
+    const server = yield* _(accessInstance)
+    const fastifyPlugin = yield* _(runPlugin(plugin))
+    server.register(fastifyPlugin, opts)
+  })
+
+export const after = () =>
+  T.gen(function* (_) {
+    const server = yield* _(accessInstance)
+    yield* _(
+      T.effectAsync<unknown, FastifyPluginError, void>((cb) => {
+        server.after().then(
+          () => cb(T.unit),
+          (error) => cb(T.fail(new FastifyPluginError({ error })))
+        )
+      })
+    )
+  })

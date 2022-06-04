@@ -3,6 +3,7 @@ import "isomorphic-fetch"
 import { pipe } from "@effect-ts/core"
 import * as T from "@effect-ts/core/Effect"
 import * as L from "@effect-ts/core/Effect/Layer"
+import type { Has } from "@effect-ts/core/Has"
 import { tag } from "@effect-ts/core/Has"
 import type { FastifyReply, FastifyRequest } from "fastify"
 
@@ -71,5 +72,20 @@ describe("fastify", () => {
     )
 
     expect(response).toEqual("OK")
+  })
+})
+
+describe("register", () => {
+  test("register a plugin", async () => {
+    const plugin: Fastify.EffectPlugin<Has<Fastify.Fastify>> = (_instance) => {
+      return T.succeed({})
+    }
+    const program = T.gen(function* (_) {
+      yield* _(Fastify.register(plugin))
+      yield* _(Fastify.after())
+      yield* _(Fastify.close())
+    })
+
+    await pipe(program, T.provideSomeLayer(Fastify.LiveFastify), T.runPromise)
   })
 })

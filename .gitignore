@@ -5,3 +5,4 @@ node_modules
 /packages/express/.ultra.cache.json
 *.tsbuildinfo
 *.cache.json
+/coverage/
