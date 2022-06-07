@@ -42,14 +42,14 @@ export const Fastify = tag<Fastify>(FastifySymbol)
 export interface Fastify extends _A<typeof makeLiveFastify> {}
 export const LiveFastify = L.fromEffect(Fastify)(makeLiveFastify)
 
-export const accessIntance = T.accessService(Fastify)((_) => _.instance)
+export const accessInstance = T.accessService(Fastify)((_) => _.instance)
 
 export function listen(
   port: number | string,
   address: string
 ): T.Effect<Has<Fastify>, FastifyListenError, void> {
   return pipe(
-    accessIntance,
+    accessInstance,
     T.chain((instance) =>
       T.effectAsync<unknown, FastifyListenError, void>((resume) => {
         instance.listen(port, address, (error) => {
@@ -66,7 +66,7 @@ export function listen(
 
 export function close(): T.Effect<Has<Fastify>, never, void> {
   return pipe(
-    accessIntance,
+    accessInstance,
     T.chain((instance) =>
       T.effectAsync<Has<Fastify>, never, void>((resume) => {
         instance.close(() => resume(T.unit))
@@ -77,7 +77,7 @@ export function close(): T.Effect<Has<Fastify>, never, void> {
 
 export function inject(opts: InjectOptions | string) {
   return pipe(
-    accessIntance,
+    accessInstance,
     T.chain((instance) =>
       T.effectAsync<unknown, FastifyInjectError, LightMyRequestResponse>((resume) => {
         instance.inject(
@@ -153,7 +153,7 @@ const match =
 
     return runHandler(_handler)["|>"](
       T.chain((handler) =>
-        accessIntance["|>"](
+        accessInstance["|>"](
           T.map((instance) => instance.route({ ..._opts, ...{ method, url, handler } }))
         )
       )
