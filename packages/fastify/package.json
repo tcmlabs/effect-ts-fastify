@@ -26,7 +26,7 @@
     "modules": []
   },
   "peerDependencies": {
-    "@effect-ts/core": "^0.48.0",
+    "@effect-ts/core": "^0.60.2",
     "fastify": ">= 3.29.0"
   }
 }
