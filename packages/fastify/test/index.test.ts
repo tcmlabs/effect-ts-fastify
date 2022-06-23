@@ -1,5 +1,3 @@
-import "isomorphic-fetch"
-
 import { pipe } from "@effect-ts/core"
 import * as T from "@effect-ts/core/Effect"
 import * as L from "@effect-ts/core/Effect/Layer"
@@ -37,7 +35,7 @@ describe("fastify", () => {
         yield* _(Fastify.get("/", handler))
         return yield* _(Fastify.inject({ method: "GET", url: "/" }))
       }),
-      T.provideSomeLayer(Fastify.LiveFastify),
+      T.provideSomeLayer(Fastify.FastifyLive),
       T.provideSomeLayer(LiveMessageService),
       T.runPromise
     )
@@ -67,7 +65,7 @@ describe("fastify", () => {
 
         return response
       }),
-      T.provideSomeLayer(Fastify.LiveFastify),
+      T.provideSomeLayer(Fastify.FastifyLive),
       T.runPromise
     )
 
@@ -86,6 +84,6 @@ describe("register", () => {
       yield* _(Fastify.close())
     })
 
-    await pipe(program, T.provideSomeLayer(Fastify.LiveFastify), T.runPromise)
+    await pipe(program, T.provideSomeLayer(Fastify.FastifyLive), T.runPromise)
   })
 })

@@ -1,8 +1,8 @@
 {
-  "name": "@tcmlabs/effect-ts-fastify",
-  "version": "0.1.0",
+  "name": "@tarrsalah/effect-ts-fastify",
+  "version": "0.0.3",
   "license": "MIT",
-  "repository": "https://github.com/tcmlabs/effect-ts-fastify.git",
+  "repository": "https://github.com/tarrsalah/effect-ts-fastify.git",
   "private": false,
   "scripts": {
     "clean": "rimraf build tsbuildinfo",
