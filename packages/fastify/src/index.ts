@@ -161,7 +161,6 @@ export const makeFastify = T.succeedWith(() => {
     after
   }
 })
-
 export const Fastify = tag<Fastify>(FastifySymbol)
 export interface Fastify extends _A<typeof makeFastify> {}
 export const FastifyLive = L.fromEffect(Fastify)(makeFastify)
