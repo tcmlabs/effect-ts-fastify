@@ -1,8 +1,8 @@
 {
   "name": "@tarrsalah/effect-ts-fastify",
-  "version": "0.0.3",
+  "version": "0.0.1",
   "license": "MIT",
-  "repository": "https://github.com/tarrsalah/effect-ts-fastify.git",
+  "repository": "https://github.com/@tcmlabs/effect-ts-fastify.git",
   "private": false,
   "scripts": {
     "clean": "rimraf build tsbuildinfo",
@@ -17,6 +17,9 @@
     "tc": "tsc --noEmit",
     "demo": "ts-node --compiler ttypescript --project tsconfig.build.json"
   },
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "files": ["/build"],
   "publishConfig": {
     "access": "public",
     "directory": "build"
