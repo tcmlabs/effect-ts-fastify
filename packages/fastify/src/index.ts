@@ -187,7 +187,7 @@ const match =
     void
   > => {
     const _handler = (handler ? handler : opts) as any
-    const _opts = (handler ? {} : handler) as any
+    const _opts = (handler ? opts : {}) as any
 
     return runHandler(_handler)["|>"](
       T.chain((handler) =>
