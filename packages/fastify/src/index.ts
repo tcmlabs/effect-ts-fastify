@@ -7,9 +7,7 @@ import type { _A, _R } from "@effect-ts/core/Utils"
 import { Tagged } from "@effect-ts/system/Case"
 import type {
   ContextConfigDefault,
-  FastifyInstance,
   FastifyLoggerInstance,
-  FastifyPluginOptions,
   FastifyReply,
   FastifyRequest,
   HTTPMethods,
@@ -36,46 +34,6 @@ export type EffectHandler<
   request: FastifyRequest<RouteGeneric, RawServer, RawRequest, ContextConfig, Logger>,
   reply: FastifyReply<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig>
 ) => T.Effect<Has<Fastify> & R, never, void | Promise<RouteGeneric["Reply"] | void>>
-
-export type EffectPlugin<
-  R,
-  Options extends FastifyPluginOptions = Record<never, never>,
-  Server extends RawServerBase = RawServerDefault
-> = (
-  instance: FastifyInstance<
-    Server,
-    RawRequestDefaultExpression<Server>,
-    RawReplyDefaultExpression<Server>
-  >,
-  opts: Options
-) => T.Effect<Has<Fastify> & R, FastifyPluginError, void>
-
-export function runPlugin<P extends EffectPlugin<any, any, any>>(plugin: P) {
-  return pipe(
-    T.map_(
-      T.runtime<
-        _R<[P] extends [EffectPlugin<infer R, any, any>] ? T.RIO<R, void> : never>
-      >(),
-      (r) => {
-        return (
-          instance: [P] extends [EffectPlugin<any, any, infer S>]
-            ? FastifyInstance<
-                S,
-                RawRequestDefaultExpression<S>,
-                RawReplyDefaultExpression<S>
-              >
-            : never,
-          options: [P] extends [EffectPlugin<any, infer O, any>] ? O : never,
-          done: (err?: Error) => void
-        ) => {
-          r.runPromise(plugin(instance, options))
-            .then(() => done())
-            .catch(done)
-        }
-      }
-    )
-  )
-}
 
 function runHandler<Handler extends EffectHandler<any, any, any, any, any, any, any>>(
   handler: Handler
@@ -196,16 +154,6 @@ const match =
       )
     )
   }
-
-export const register = <R, Options extends FastifyPluginOptions>(
-  effectPlugin: EffectPlugin<R, Options>,
-  opts?: Options
-) =>
-  T.gen(function* (_) {
-    const _server = yield* _(server)
-    const plugin = yield* _(runPlugin(effectPlugin))
-    _server.register(plugin, opts)
-  })
 
 export const get = match("GET")
 export const post = match("POST")
