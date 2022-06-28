@@ -33,7 +33,7 @@ export type EffectHandler<
 > = (
   request: FastifyRequest<RouteGeneric, RawServer, RawRequest, ContextConfig, Logger>,
   reply: FastifyReply<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig>
-) => T.Effect<Has<Fastify> & R, never, void | Promise<RouteGeneric["Reply"] | void>>
+) => T.Effect<Has<Fastify> & R, never, void | RouteGeneric["Reply"]>
 
 function runHandler<Handler extends EffectHandler<any, any, any, any, any, any, any>>(
   handler: Handler

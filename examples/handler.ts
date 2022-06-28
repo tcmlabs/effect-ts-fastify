@@ -6,9 +6,9 @@ import { get, listen, FastifyLive } from "../packages/fastify/src"
 pipe(
   T.gen(function* (_) {
     yield* _(
-      get("/", (_request, reply) =>
+      get("/", (_request, _reply) =>
         T.succeedWith(() => {
-          reply.send("OK")
+          return "OK"
         })
       )
     )
