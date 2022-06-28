@@ -92,9 +92,8 @@ function runHandler<Handler extends EffectHandler<any, any, any, any, any, any, 
           >
         >(),
         (r) => {
-          return (request: FastifyRequest, reply: FastifyReply) => {
-            r.runFiber(handler.call(server, request, reply))
-          }
+          return (request: FastifyRequest, reply: FastifyReply) =>
+            r.runPromise(handler.call(server, request, reply))
         }
       )
     )

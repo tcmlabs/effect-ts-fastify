@@ -52,7 +52,11 @@ describe("fastify", () => {
         yield* _(
           Fastify.get("/", (_request, reply) =>
             T.gen(function* (_) {
-              yield* _(T.succeedWith(() => reply.send("OK")))
+              return yield* _(
+                T.succeedWith(() => {
+                  reply.send("OK")
+                })
+              )
             })
           )
         )
