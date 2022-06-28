@@ -12,14 +12,12 @@ const handler = (_request: FastifyRequest, reply: FastifyReply) =>
   T.gen(function* (_) {
     yield* _(
       T.succeedWith(() => {
-        console.log("inside handler!")
         reply.send("OK")
       })
     )
   })
 
 async function validate(username: string, password: string) {
-  console.log("validate")
   if (username !== "admin" || password !== "admin") {
     return new Error("Not an admin!")
   }
@@ -29,16 +27,11 @@ pipe(
   T.gen(function* (_) {
     const fastify = yield* _(server)
 
-    yield* _(
-      T.effectAsync((done) =>
-        fastify
-          .register(FastifyBasicAuth, { validate, authenticate: true })
-          .then(() => done(T.unit))
-      )
-    )
-    yield* _(after())
+    fastify.register(FastifyBasicAuth, { validate, authenticate: true })
 
+    yield* _(after())
     yield* _(get("/", { onRequest: fastify.basicAuth }, handler))
+
     yield* _(listen(3000, "localhost"))
     console.log("listening to localhost:3000!")
     yield* _(T.never)

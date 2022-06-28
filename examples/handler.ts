@@ -1,8 +1,3 @@
-## effect-ts-fastify
-
-### Example
-
-```ts
 import { pipe } from "@effect-ts/core"
 import * as T from "@effect-ts/core/Effect"
 import * as N from "@effect-ts/node/Runtime"
@@ -25,4 +20,3 @@ pipe(
   T.provideSomeLayer(FastifyLive),
   N.runMain
 )
-```
