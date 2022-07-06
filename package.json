@@ -61,7 +61,7 @@
     "husky": "8.0.1",
     "isomorphic-fetch": "^3.0.0",
     "jest": "^28.1.1",
-    "lerna": "^4.0.0",
+    "lerna": "^5.1.7",
     "prettier": "^2.7.1",
     "ts-jest": "^28.0.5",
     "ts-node": "^10.8.1",
