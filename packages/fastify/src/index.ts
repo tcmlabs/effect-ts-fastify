@@ -178,18 +178,14 @@ const match =
           : never
       >,
     void
-  > => {
-    const _handler = (handler ? handler : opts) as any
-    const _opts = (handler ? opts : {}) as any
-
-    return runHandler(_handler)["|>"](
-      T.chain((handler) =>
-        server["|>"](
-          T.map((server) => server.route({ ..._opts, ...{ method, url, handler } }))
-        )
-      )
-    )
-  }
+  > =>
+    T.gen(function* (_) {
+      const _server = yield* _(server)
+      const _handler = (handler ? handler : opts) as any
+      const _opts = (handler ? opts : {}) as any
+      const rawHandler = yield* _(runHandler(_handler))
+      _server.route({ ..._opts, ...{ method, url, handler: rawHandler } })
+    })
 
 export const get = match("GET")
 export const post = match("POST")
