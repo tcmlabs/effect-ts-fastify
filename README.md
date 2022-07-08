@@ -1,5 +1,7 @@
 ## effect-ts-fastify
 
+Thin effect-ts layer on top of fastify (`>= 4.0.2` ).
+
 ### Example
 
 ```ts

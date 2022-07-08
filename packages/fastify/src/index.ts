@@ -10,6 +10,8 @@ import type {
   FastifyLoggerInstance,
   FastifyReply,
   FastifyRequest,
+  FastifySchema,
+  FastifyTypeProvider,
   HTTPMethods,
   InjectOptions,
   LightMyRequestResponse,
@@ -21,6 +23,12 @@ import type {
 } from "fastify"
 import fastify from "fastify"
 import type { RouteGenericInterface } from "fastify/types/route"
+import {
+  FastifyRequestType,
+  FastifyTypeProviderDefault,
+  ResolveFastifyReplyReturnType,
+  ResolveFastifyRequestType
+} from "fastify/types/type-provider"
 
 export type EffectHandler<
   R,
@@ -29,11 +37,39 @@ export type EffectHandler<
   RawReply extends RawReplyDefaultExpression<RawServer> = RawReplyDefaultExpression<RawServer>,
   RouteGeneric extends RouteGenericInterface = RouteGenericInterface,
   ContextConfig = ContextConfigDefault,
+  SchemaCompiler extends FastifySchema = FastifySchema,
+  TypeProvider extends FastifyTypeProvider = FastifyTypeProviderDefault,
+  RequestType extends FastifyRequestType = ResolveFastifyRequestType<
+    TypeProvider,
+    SchemaCompiler,
+    RouteGeneric
+  >,
   Logger extends FastifyLoggerInstance = FastifyLoggerInstance
 > = (
-  request: FastifyRequest<RouteGeneric, RawServer, RawRequest, ContextConfig, Logger>,
-  reply: FastifyReply<RawServer, RawRequest, RawReply, RouteGeneric, ContextConfig>
-) => T.Effect<Has<Fastify> & R, never, void | RouteGeneric["Reply"]>
+  request: FastifyRequest<
+    RouteGeneric,
+    RawServer,
+    RawRequest,
+    SchemaCompiler,
+    TypeProvider,
+    ContextConfig,
+    RequestType,
+    Logger
+  >,
+  reply: FastifyReply<
+    RawServer,
+    RawRequest,
+    RawReply,
+    RouteGeneric,
+    ContextConfig,
+    SchemaCompiler,
+    TypeProvider
+  >
+) => T.Effect<
+  Has<Fastify> & R,
+  never,
+  ResolveFastifyReplyReturnType<TypeProvider, SchemaCompiler, RouteGeneric>
+>
 
 function runHandler<Handler extends EffectHandler<any, any, any, any, any, any, any>>(
   handler: Handler

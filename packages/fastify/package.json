@@ -30,6 +30,6 @@
   },
   "peerDependencies": {
     "@effect-ts/core": "^0.60.2",
-    "fastify": ">= 3.29.0"
+    "fastify": ">= 4.0.2"
   }
 }
