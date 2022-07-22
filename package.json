@@ -55,7 +55,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "eslint-plugin-sort-destructure-keys": "^1.4.0",
-    "fast-check": "^2.20.0",
+    "fast-check": "^3.1.0",
     "fast-equals": "^3.0.3",
     "fast-safe-stringify": "^2.1.1",
     "fastify": ">= 4.0.2",
