@@ -23,7 +23,7 @@ import type {
 } from "fastify"
 import fastify from "fastify"
 import type { RouteGenericInterface } from "fastify/types/route"
-import {
+import type {
   FastifyRequestType,
   FastifyTypeProviderDefault,
   ResolveFastifyReplyReturnType,

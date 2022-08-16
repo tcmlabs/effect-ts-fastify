@@ -52,6 +52,7 @@ module.exports = {
     "import/no-unresolved": "error",
     "import/order": "off",
     "simple-import-sort/imports": "error",
-    "sort-destructure-keys/sort-destructure-keys": "error"
+    "sort-destructure-keys/sort-destructure-keys": "error",
+    "@typescript-eslint/no-empty-function": "off"
   }
 }
